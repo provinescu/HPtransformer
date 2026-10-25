@@ -1,5 +1,5 @@
 # HPtransformer
 Musical Transformer
 
-look at the guide:
+Look at the guide:
 
