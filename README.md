@@ -1,5 +1,5 @@
 # HPtransformer
-Musical Transformer
+Musical Transformer Class
 
 Look at the guide.
 
