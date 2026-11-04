@@ -1,7 +1,7 @@
 # HPtransformer
 Musical Transformer Class
 
-Look at the guide.
+Look at the guides.
 
 Notes:
 
