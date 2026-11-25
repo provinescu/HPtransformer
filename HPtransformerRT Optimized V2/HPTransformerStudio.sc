@@ -53,7 +53,8 @@ HPTransformerStudio : Object {
         var w, pages, pageButtons, activePage, routine, running=true, rate=0.75;
         var uiScale=0.78, uiRect, scrollView, uiRoot;
         var graphDrawScale=0.82, graphRect, heatDrawScale=0.82, heatPoint, heatRect;
-        var statusText, graphView, heatView, autoText, metaText, rcuText, logView;
+        var statusText, graphView, heatView, heatScrollView, heatRoot, autoText, metaText, rcuText, logView;
+        var updateHeatmapLayout, heatVirtualWidth=1270, heatVirtualHeight=900;
         var genPresetText, memoryPresetText, surprisePresetText;
         var generationLiveText, memoryLiveText, surpriseLiveText;
         var oscStatusText, oscEventsView, oscHostField, oscInPortBox, oscOutPortBox;
@@ -389,7 +390,6 @@ HPTransformerStudio : Object {
          (metaLearnEnabled:true,metaLearnInterval:32,metaLearnStrength:0.05,metaLearnSmoothing:0.985)
         ];
 
-
         // Presets specialises Generation
         genNames=["Generation equilibree","Generation creative","Generation stable","Generation expansive",
          "Generation minimaliste","Generation dynamique","Generation memoire","Generation torique"];
@@ -606,7 +606,8 @@ HPTransformerStudio : Object {
          p=CompositeView(uiRoot,uiRect.(0,190,1320,840)).background_(Color(0.15,0.19,0.25)).visible_(false); pages[pair[0]]=p });
         showPage={|name| activePage=name; pages.keysValuesDo({|k,p|p.visible_(k==name)});
          pageButtons.keysValuesDo({|k,b| var label=b.states[0][0]; styleButton.(b,label,if(k==name,{navActiveColor},{navIdleColor}))});
-         if(name==\graphs,{graphView.refresh}); if(name==\heatmaps,{heatView.refresh}) };
+         if(name==\graphs,{graphView.refresh});
+         if(name==\heatmaps,{updateHeatmapLayout.value;heatView.refresh}) };
 
         // Dashboard
         title.(pages[\dashboard],"ETAT GENERAL",20,15); statusText=TextView(pages[\dashboard],uiRect.(20,50,760,620))
@@ -1190,50 +1191,6 @@ HPTransformerStudio : Object {
          })
         };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         stopSelectedMorph={
          var key,scope,morphKey;
          key=selectedMorphParameter.value;
@@ -1627,32 +1584,6 @@ HPTransformerStudio : Object {
          })
         };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         graphView.drawFunc_({|view|
          var lossMax,metricMax,vw,vh,margin,gap,rowGap,topW,bottomW,rowH,topY,bottomY;
          // Geometrie calculee depuis la taille reelle du UserView. On evite
@@ -1684,7 +1615,9 @@ HPTransformerStudio : Object {
         lossScaleMenu=PopUpMenu(pages[\graphs],uiRect.(475,585,145,28)).items_(["Auto","0..0.10","0..1.00"]).value_(1).action_({|menu|lossScaleMode=menu.value;graphView.refresh});
         StaticText(pages[\graphs],uiRect.(635,591,95,22)).string_("Autres :").stringColor_(Color.white);
         metricScaleMenu=PopUpMenu(pages[\graphs],uiRect.(705,585,145,28)).items_(["Auto","0..1.00","0..2.00"]).value_(1).action_({|menu|metricScaleMode=menu.value;graphView.refresh});
-        StaticText(pages[\graphs],uiRect.(870,591,90,22)).string_("EMA alpha :").stringColor_(Color.white);
+        StaticText(pages[\graphs],uiRect.(870,591,82,22))
+         .string_("EMA alpha :").stringColor_(Color.white)
+         .font_(Font.default.size_(8));
         smoothingBox=NumberBox(pages[\graphs],uiRect.(955,585,90,28)).value_(graphSmoothAlpha).decimals_(3).clipLo_(0.001).clipHi_(1.0).action_({|box|
          graphSmoothAlpha=box.value.asFloat.clip(0.001,1.0);
          [lossEMA,surpriseEMAPlot,entropyEMA,memRecallEMA,trajRecallEMA].do(_.clear);
@@ -1692,49 +1625,89 @@ HPTransformerStudio : Object {
           pair[0].do({|value|var previous;previous=if(pair[1].isEmpty,{value},{pair[1].last});pair[1].add((previous*(1.0-graphSmoothAlpha))+(value*graphSmoothAlpha))})
          });graphView.refresh
         });
-        StaticText(pages[\graphs],uiRect.(1060,591,230,22)).string_("clair = brut | fonce = tendance EMA").stringColor_(Color.white);
+        StaticText(pages[\graphs],uiRect.(1048,591,242,22))
+         .string_("clair = brut | fonce = tendance EMA")
+         .stringColor_(Color.white)
+         .font_(Font.default.size_(8));
 
-
-
-
-
-
-
-
-
-
-
-
-        // Heatmaps
+        // Heatmaps dynamiques : le canvas virtuel grandit selon le nombre
+        // d'experts, de heads et de features. Les barres de defilement
+        // evitent toute troncature sans reduire les cellules a une taille illisible.
         title.(pages[\heatmaps],"EXPERTS / HEADS / FEATURE GATES",20,15);
-        heatView=UserView(pages[\heatmaps],uiRect.(20,50,1270,530)).background_(Color.white).clearOnRefresh_(true);
+        heatScrollView=ScrollView(pages[\heatmaps],uiRect.(20,50,1270,530))
+         .hasBorder_(true).autohidesScrollers_(true);
+        heatRoot=CompositeView(heatScrollView,Rect(0,0,heatVirtualWidth,heatVirtualHeight))
+         .background_(Color.white);
+        heatView=UserView(heatRoot,Rect(0,0,heatVirtualWidth,heatVirtualHeight))
+         .background_(Color.white).clearOnRefresh_(true);
+        updateHeatmapLayout={
+         var e,h,f,expertCount,headCount,featureRows,featureCols,maxColumns;
+         e=if(lastStatus.notNil,{lastStatus[\expertUsageEMA] ? (lastStatus[\expertUsage] ? [])},{[]});
+         h=if(lastStatus.notNil,{lastStatus[\headActivity] ? []},{[]});
+         f=if(lastStatus.notNil,{lastStatus[\headFeatureUsage] ? []},{[]});
+         expertCount=e.size.max(1);headCount=h.size.max(1);featureRows=f.size.max(1);
+         featureCols=(f.collect({|row|row.size}).maxItem ? 1).max(1);
+         maxColumns=expertCount.max(headCount).max(featureCols);
+         heatVirtualWidth=(170+(maxColumns*48)).max(1240).asInteger;
+         heatVirtualHeight=(620+(featureRows*32)).max(900).asInteger;
+         heatRoot.bounds_(Rect(0,0,heatVirtualWidth,heatVirtualHeight));
+         heatView.bounds_(Rect(0,0,heatVirtualWidth,heatVirtualHeight));
+        };
         heatView.drawFunc_({|view|
-         var e,h,f,barW,barMax,baseY,cellW,cellH,vv,maxCols;
-         Pen.fillColor=Color.white; Pen.fillRect(view.bounds.moveTo(0,0));
-         Pen.stringAtPoint("UTILISATION DES EXPERTS",heatPoint.(30,18),Font.default.boldVariant.size_(12),Color.black);
-         Pen.stringAtPoint("ACTIVITE DES HEADS",heatPoint.(680,18),Font.default.boldVariant.size_(12),Color.black);
-         Pen.stringAtPoint("FEATURE GATES",heatPoint.(30,315),Font.default.boldVariant.size_(12),Color.black);
+         var e,h,f,vw,left,right,barBottom,barAreaHeight,barW=34,step=48,vv;
+         var featureTop=590,cellW=44,cellH=30,featureCols,rowLabelWidth=52;
+         var labelFont=Font.default.size_(9),valueFont=Font.default.size_(8);
+         var titleFont=Font.default.boldVariant.size_(13);
+         vw=view.bounds.width;left=70;right=vw-30;
+         Pen.fillColor=Color.white;Pen.fillRect(view.bounds.moveTo(0,0));
          if(lastStatus.isNil,{
-          Pen.stringAtPoint("En attente de donnees du transformeur",heatPoint.(30,52),Font.default.size_(12),Color.grey(0.35))
+          Pen.stringAtPoint("En attente de donnees du transformeur",Point(30,52),Font.default.size_(12),Color.grey(0.35))
          },{
-          e=lastStatus[\expertUsageEMA] ? (lastStatus[\expertUsage] ? []); h=lastStatus[\headActivity]?[]; f=lastStatus[\headFeatureUsage]?[];
-          barMax=190; baseY=270;
-          if(e.isEmpty,{Pen.stringAtPoint("Aucune donnee expertUsage",heatPoint.(30,52),Font.default.size_(11),Color.grey(0.35))},{
-           barW=(570/e.size.max(1)).clip(22,90);
-           e.do({|v,i|vv=v.asFloat.clip(0,1);Pen.fillColor=Color(0.88,0.18,0.18);Pen.fillRect(heatRect.(30+(i*barW),baseY-(vv*barMax),barW-6,(vv*barMax).max(2)));Pen.stringAtPoint(i.asString,heatPoint.(34+(i*barW),baseY+5),Font.default.size_(9),Color.black);Pen.stringAtPoint(vv.round(0.001).asString,heatPoint.(32+(i*barW),baseY-(vv*barMax)-15),Font.default.size_(8),Color.black)})
+          e=lastStatus[\expertUsageEMA] ? (lastStatus[\expertUsage] ? []);
+          h=lastStatus[\headActivity] ? [];
+          f=lastStatus[\headFeatureUsage] ? [];
+          Pen.stringAtPoint("UTILISATION DES EXPERTS  ("++e.size++")",Point(30,18),titleFont,Color.black);
+          barBottom=225;barAreaHeight=170;
+          Pen.strokeColor=Color.grey(0.88);Pen.moveTo(Point(left,barBottom));Pen.lineTo(Point(right,barBottom));Pen.stroke;
+          if(e.isEmpty,{Pen.stringAtPoint("Aucune donnee expertUsage",Point(30,58),labelFont,Color.grey(0.35))},{
+           e.do({|value,index|var x,height;vv=value.asFloat.clip(0,1);x=left+(index*step);height=(vv*barAreaHeight).max(2);
+            Pen.fillColor=Color(0.88,0.18,0.18);Pen.fillRect(Rect(x,barBottom-height,barW,height));
+            Pen.stringAtPoint("E"++index,Point(x,barBottom+7),labelFont,Color.black);
+            Pen.stringAtPoint(vv.round(0.001).asString,Point(x-2,barBottom-height-16),valueFont,Color.black)})
           });
-          if(h.isEmpty,{Pen.stringAtPoint("Aucune donnee headActivity",heatPoint.(680,52),Font.default.size_(11),Color.grey(0.35))},{
-           barW=(540/h.size.max(1)).clip(22,90);
-           h.do({|v,i|vv=v.asFloat.clip(0,1);Pen.fillColor=Color(0.15,0.38,0.88);Pen.fillRect(heatRect.(680+(i*barW),baseY-(vv*barMax),barW-6,(vv*barMax).max(2)));Pen.stringAtPoint(i.asString,heatPoint.(684+(i*barW),baseY+5),Font.default.size_(9),Color.black);Pen.stringAtPoint(vv.round(0.001).asString,heatPoint.(682+(i*barW),baseY-(vv*barMax)-15),Font.default.size_(8),Color.black)})
+          Pen.stringAtPoint("ACTIVITE DES HEADS  ("++h.size++")",Point(30,285),titleFont,Color.black);
+          barBottom=490;
+          Pen.strokeColor=Color.grey(0.88);Pen.moveTo(Point(left,barBottom));Pen.lineTo(Point(right,barBottom));Pen.stroke;
+          if(h.isEmpty,{Pen.stringAtPoint("Aucune donnee headActivity",Point(30,325),labelFont,Color.grey(0.35))},{
+           h.do({|value,index|var x,height;vv=value.asFloat.clip(0,1);x=left+(index*step);height=(vv*barAreaHeight).max(2);
+            Pen.fillColor=Color(0.15,0.38,0.88);Pen.fillRect(Rect(x,barBottom-height,barW,height));
+            Pen.stringAtPoint("H"++index,Point(x,barBottom+7),labelFont,Color.black);
+            Pen.stringAtPoint(vv.round(0.001).asString,Point(x-2,barBottom-height-16),valueFont,Color.black)})
           });
-          if(f.isEmpty,{Pen.stringAtPoint("Aucune donnee headFeatureUsage",heatPoint.(30,350),Font.default.size_(11),Color.grey(0.35))},{
-           maxCols=(f.collect({|row|row.size}).maxItem?1).max(1); cellW=(1180/maxCols).clip(16,42); cellH=(225/f.size.max(1)).clip(16,42);
-           f.do({|row,y|row.do({|v,x|vv=v.asFloat.clip(0,1);Pen.fillColor=Color(1.0-vv,1.0-(vv*0.45),1.0-vv);Pen.fillRect(heatRect.(30+(x*cellW),350+(y*cellH),cellW-2,cellH-2));Pen.strokeColor=Color.grey(0.75);Pen.width=1;Pen.strokeRect(heatRect.(30+(x*cellW),350+(y*cellH),cellW-2,cellH-2));if((cellW>=28)and:{cellH>=22},{Pen.stringAtPoint(vv.round(0.01).asString,heatPoint.(32+(x*cellW),354+(y*cellH)),Font.default.size_(7),Color.black)})})})
+          featureCols=(f.collect({|row|row.size}).maxItem ? 0);
+          Pen.stringAtPoint("FEATURE GATES  ("++f.size++" heads x "++featureCols++" features)",Point(30,545),titleFont,Color.black);
+          if(f.isEmpty,{Pen.stringAtPoint("Aucune donnee headFeatureUsage",Point(30,595),labelFont,Color.grey(0.35))},{
+           featureCols.do({|column|Pen.stringAtPoint("F"++column,Point(left+rowLabelWidth+(column*cellW)+9,featureTop-20),labelFont,Color.black)});
+           f.do({|row,rowIndex|
+            Pen.stringAtPoint("H"++rowIndex,Point(left,featureTop+(rowIndex*cellH)+7),labelFont,Color.black);
+            row.do({|value,column|var x,y;vv=value.asFloat.clip(0,1);x=left+rowLabelWidth+(column*cellW);y=featureTop+(rowIndex*cellH);
+             Pen.fillColor=Color(1.0-vv,1.0-(vv*0.45),1.0-vv);Pen.fillRect(Rect(x,y,cellW-3,cellH-3));
+             Pen.strokeColor=Color.grey(0.72);Pen.strokeRect(Rect(x,y,cellW-3,cellH-3));
+             Pen.stringAtPoint(vv.round(0.01).asString,Point(x+5,y+7),valueFont,Color.black)})
+           })
           })
          })
         });
-        exportHeat={Dialog.savePanel({|path|var img,fp;if(path.notNil,{fp=if(path.endsWith(".png"),{path},{path++".png"});img=Image.new((1270*heatDrawScale).asInteger,(610*heatDrawScale).asInteger);img.draw({heatView.drawFunc.value(heatView)});img.write(fp);img.free;addLog.("Heatmap exportee: "++fp)})})};
+        exportHeat={Dialog.savePanel({|path|var img,fp,width,height;if(path.notNil,{
+         fp=if(path.endsWith(".png"),{path},{path++".png"});updateHeatmapLayout.value;
+         width=heatView.bounds.width.asInteger.max(1);height=heatView.bounds.height.asInteger.max(1);
+         img=Image.new(width,height);img.draw({heatView.drawFunc.value(heatView)});img.write(fp);img.free;
+         addLog.("Heatmap complete exportee: "++fp++" ("++width++"x"++height++")")})})};
         button.(pages[\heatmaps],"Exporter heatmaps PNG",20,590,230,{exportHeat.value});
+        button.(pages[\heatmaps],"Recentrer",270,590,150,{heatScrollView.visibleOrigin_(Point(0,0));heatView.refresh});
+        StaticText(pages[\heatmaps],uiRect.(445,596,790,24))
+         .string_("Defilement horizontal/vertical automatique selon le nombre d'experts, heads et features.")
+         .stringColor_(Color.white);
         // Generation presets
         title.(pages[\genPresets],"PRESETS GENERATION",20,15);
         genMenu=PopUpMenu(pages[\genPresets],uiRect.(20,55,500,30)).items_(genNames);
@@ -1877,11 +1850,9 @@ HPTransformerStudio : Object {
          ).asCompileString);
          oscUpdateStatus.value;
          refreshStateIndicators.value;
-         if(activePage==\graphs,{graphView.refresh});if(activePage==\heatmaps,{heatView.refresh})})};
+         if(activePage==\graphs,{graphView.refresh});
+         if(activePage==\heatmaps,{updateHeatmapLayout.value;heatView.refresh})})};
         routine=Routine({while({running},{if(displaysEnabled,{{refresh.value}.defer});rate.wait})}).play(AppClock);
         w.onClose_({running=false;oscStop.value;if(routine.notNil,{routine.stop});window=nil;refreshRoutine=nil});refreshStateIndicators.value;showPage.(\dashboard);addLog.("Studio Pro pour HPtransformerRT ouvert - echelle "++uiScale);window=w;refreshRoutine=routine;scrollView.visibleOrigin_(Point(0,0));w.front;
     }
 }
-
-
-
