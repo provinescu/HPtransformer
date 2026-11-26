@@ -1,7 +1,7 @@
 # HPtransformer
 Musical Transformer Class
 
-Look at the guides above (HPtransformer...) or here:  HP-Software-Guides
+Look at the guides above (HPtransformer...) or here: [ HP-Software-Guides](https://github.com/provinescu/HP-Software-Guides)
 
 Notes:
 
