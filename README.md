@@ -6,7 +6,7 @@ HPtransformer is an experimental neural system written in SuperCollider for lear
 
 It combines multi-head attention, a mixture of experts, associative long-term memory, trajectory memory, prioritized replay, adaptive generation controls, and targeted Read-Copy-Update (RCU) snapshots.
 
-> **Project status:** experimental / beta. HPtransformer is intended for artistic research, algorithmic composition, live coding, gestural interaction, and generative music systems. It should be tested carefully before performance use.
+> **Project status:** HPtransformer is intended for artistic research, algorithmic composition, live coding, gestural interaction, and generative music systems.
 
 ---
 
