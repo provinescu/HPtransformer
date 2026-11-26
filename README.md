@@ -33,11 +33,6 @@ It combines multi-head attention, a mixture of experts, associative long-term me
 - [Saving and restoring](#saving-and-restoring)
 - [Performance notes](#performance-notes)
 - [Troubleshooting](#troubleshooting)
-- [Repository structure](#repository-structure)
-- [Documentation](#documentation)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
