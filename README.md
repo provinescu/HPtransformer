@@ -962,4 +962,7 @@ SCDoc.indexAllDocuments(true);
 
 ---
 
-See the repository's LICENSE file for details.
+## License
+
+See the repository's `LICENSE` file.
+
