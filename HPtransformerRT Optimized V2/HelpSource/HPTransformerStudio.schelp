@@ -1,71 +1,71 @@
 TITLE:: HPTransformerStudio
-SUMMARY:: Studio Classic Musical RT 8D avec presets harmonises, Live Concert et Mode Scene
+SUMMARY:: Classic Musical RT 8D Studio with harmonized presets, Live Concert, and Stage Mode
 CATEGORIES:: Libraries>HPTransformer, GUI, Machine Learning
 RELATED:: Classes/HPtransformerRT
 
 DESCRIPTION::
-HPTransformerStudio V8.7.3 pilote HPtransformerRT V30.3.0 Classic Musical RT. Cette edition utilise des noms de presets coherents avec le moteur Classic, ajoute le preset Classic Live Concert et conserve le Mode Scene pour suspendre les affichages periodiques.
+HPTransformerStudio V8.7.3 controls the HPtransformerRT V30.3.0 Classic Musical RT engine. This edition uses preset names consistent with the Classic engine, adds the Classic Live Concert preset, and retains Stage Mode for suspending periodic display updates.
 
-Le Studio comprend Dashboard, controles runtime, parametres manuels, morphing, generation, memoire, surprise, OSC, ControlBus, jeux complets, graphes, heatmaps, presets, sessions, RCU et journaux. Il ne contient pas de page Advanced RT.
+The Studio includes a Dashboard, runtime controls, manual parameters, morphing, generation, memory, surprise, OSC, ControlBus, complete configuration sets, graphs, heatmaps, presets, sessions, RCU, and logs. It does not include an Advanced RT page.
 
-Le worker OSC demarre a 20 Hz, Learn/N vaut 8 par defaut et le rafraichissement visuel est espace a 0.75 seconde.
+The OSC worker runs at 20 Hz, Learn/N defaults to 8, and the visual refresh interval is 0.75 seconds.
 
 CLASSMETHODS::
 
 METHOD:: new
-Cree un Studio associe a un moteur.
+Creates a Studio associated with an engine.
 
 ARGUMENT:: transformer
-Instance de HPtransformerRT. Si la valeur est nil, le Studio cree un moteur 8 x 8 par defaut.
+An HPtransformerRT instance. If nil, the Studio creates a default 8 x 8 engine.
 
 ARGUMENT:: externalTransformerKey
-Symbole de la variable externe a synchroniser. Valeur par defaut : code::\hpTR::.
+The Symbol naming the external variable to synchronize. The default value is code::\hpTR::.
 
 RETURNS::
-Une instance de HPTransformerStudio.
+An HPTransformerStudio instance.
 
 INSTANCEMETHODS::
 
 METHOD:: front
-Construit la fenetre si necessaire et la place au premier plan.
+Builds the window if necessary and brings it to the front.
 
 RETURNS::
-Le Studio.
+The Studio.
 
 METHOD:: close
-Ferme la fenetre et les routines associees.
+Closes the window and its associated routines.
 
 RETURNS::
-Le Studio.
+The Studio.
 
 METHOD:: transformer
-Retourne le moteur actif.
+Returns the active engine.
 
 RETURNS::
-Une instance de HPtransformerRT.
+An HPtransformerRT instance.
 
 METHOD:: externalTransformerKey
-Retourne la cle de synchronisation externe.
+Returns the external synchronization key.
 
 RETURNS::
-Un symbole.
+A Symbol.
 
 METHOD:: attachControlBus
-Attache un Bus de controle. Pour le profil par defaut, utiliser 8 canaux.
+Attaches a control bus. Use 8 channels for the default profile.
 
 ARGUMENT:: bus
-Bus.control destine aux sorties.
+The Bus.control used for the outputs.
 
 RETURNS::
-Le Studio.
+The Studio.
 
 METHOD:: detachControlBus
-Detache le bus de controle.
+Detaches the control bus.
 
 RETURNS::
-Le Studio.
+The Studio.
 
-SECTION:: Creation du Studio
+SECTION:: Creating the Studio
 
 CODE::
 (
@@ -74,22 +74,23 @@ CODE::
 )
 ::
 
-SECTION:: Presets generaux Classic
+SECTION:: General Classic presets
 
 LIST::
-## Classic - Prudent : apprentissage lent, protection forte, replay modere et exploration faible.
-## Classic - Equilibre : compromis general entre adaptation, memoire et generation.
-## Classic - Reactif : apprentissage plus rapide, contexte court et generation plus mobile.
-## Classic - Continuite legere : continuite obtenue par memoire et trajectoire classiques, sans lissage temporel additionnel.
-## Classic - Stabilite maximale : apprentissage lent, gradient borne, protection et replay renforces.
-## Classic Musical Direct : base musicale legere, 20 Hz, Learn/N = 8, RCU et Details OFF.
-## Classic Live Concert : equilibre scene, 20 Hz, Learn/N = 6, apprentissage et generation actifs.
-## Classic Generation Only : apprentissage externe OFF, 20 Hz, Learn/N = 16.
-## Classic Ultra CPU - Apprentissage rapide : charge minimale, adaptation forte, 20 Hz et Learn/N = 4.
+## Classic - Cautious: slow learning, strong protection, moderate replay, and low exploration.
+## Classic - Balanced: general-purpose balance between adaptation, memory, and generation.
+## Classic - Reactive: faster learning, short context, and more responsive generation.
+## Classic - Light Continuity: continuity produced by conventional memory and trajectory mechanisms, without additional temporal smoothing.
+## Classic - Maximum Stability: slow learning, bounded gradients, stronger protection, and increased replay.
+## Classic Musical Direct: lightweight musical baseline, 20 Hz, Learn/N = 8, with RCU and Details disabled.
+## Classic Live Concert: stage-oriented balance, 20 Hz, Learn/N = 6, with learning and generation enabled.
+## Classic Generation Only: external learning disabled, 20 Hz, Learn/N = 16.
+## Classic Ultra CPU - Fast Learning: minimal load, strong adaptation, 20 Hz, and Learn/N = 4.
 ::
 
 SECTION:: Classic Live Concert
-Le preset Live Concert applique notamment un apprentissage modere, un replay faible, un seul rappel memoire, un seul rappel de trajectoire, une fenetre de generation de 4 et une variation moderee.
+
+The Live Concert preset applies moderate learning, low replay, one memory recall, one trajectory recall, a generation window of 4, and moderate variation.
 
 CODE::
 learningRate = 0.00030
@@ -102,90 +103,94 @@ deltaScale = 0.34
 trajectoryExplorationGain = 0.004
 ::
 
-Reglage operationnel du preset :
+Operational preset settings:
 
 LIST::
-## Traitement OSC : 20 Hz.
-## Learn/N : 6.
-## Learning : ON.
-## Generation : ON.
-## Details OSC : OFF.
-## RCU : OFF.
+## OSC processing: 20 Hz.
+## Learn/N: 6.
+## Learning: ON.
+## Generation: ON.
+## OSC Details: OFF.
+## RCU: OFF.
 ::
 
-SECTION:: Jeux complets Classic
+SECTION:: Complete Classic configurations
 
 LIST::
-## Classic Prudent : suivi 8D proche du geste et generation contenue.
-## Classic Equilibre : compromis general et suivi differencie par sortie.
-## Classic Expressif : temperature plus ouverte et suivi faible.
-## Classic Installation : apprentissage lent, protection forte et generation prudente.
+## Classic Cautious: 8D tracking that remains close to the gesture, with restrained generation.
+## Classic Balanced: general-purpose balance with output-specific tracking.
+## Classic Expressive: higher temperature and low tracking.
+## Classic Installation: slow learning, strong protection, and cautious generation.
 ::
 
-SECTION:: Mode Scene
-Le bouton du Dashboard alterne entre Mode Controle et Mode Scene.
+SECTION:: Stage Mode
+
+The Dashboard button toggles between Control Mode and Stage Mode.
 
 LIST::
-## Mode Controle : diagnostics, graphes, heatmaps, journaux et voyants sont actualises.
-## Mode Scene : la routine periodique de rafraichissement est suspendue et Details OSC est force sur OFF.
-## OSC, worker, learnEvent, generateStep, sortie reseau et ControlBus continuent.
-## Le retour en Mode Controle declenche un rafraichissement unique.
+## Control Mode: diagnostics, graphs, heatmaps, logs, and indicators are updated.
+## Stage Mode: the periodic refresh routine is suspended and OSC Details is forced OFF.
+## OSC, the worker, learnEvent, generateStep, network output, and ControlBus continue to operate.
+## Returning to Control Mode triggers a single refresh.
 ::
 
 NOTE::
-Le Mode Scene reduit la charge de l'interface, mais ne diminue pas le cout interne de learnEvent. Pour reduire ce cout, augmenter Learn/N ou diminuer Traitement Hz.
+Stage Mode reduces GUI load, but does not reduce the internal cost of learnEvent. To reduce that cost, increase Learn/N or lower the processing rate in Hz.
 ::
 
-SECTION:: Suivi direct par dimension
-Le suivi direct est applique apres generateStep dans la chaine OSC du Studio.
+SECTION:: Direct tracking by dimension
+
+Direct tracking is applied after generateStep in the Studio's OSC processing chain.
 
 CODE::
 output[i] = (output[i] * (1.0 - mix[i])) + (input[i] * mix[i]);
 ::
 
-Exemple 8D leger pour le concert :
+Lightweight 8D example for live performance:
 
 CODE::
 0.12,0.06,0.03,0.12,0.06,0.03,0.12,0.06
 ::
 
-Pour evaluer le moteur brut, utiliser un suivi global de 0 ou huit valeurs nulles.
+To evaluate the raw engine output, use a global tracking value of 0 or eight zero values.
 
-SECTION:: OSC 8D
-Le chemin d'entree attend exactement huit valeurs avec le profil par defaut.
+SECTION:: 8D OSC
+
+With the default profile, the input path expects exactly eight values.
 
 CODE::
 n = NetAddr("127.0.0.1", 57120);
 n.sendMsg("/hptransformer/input", 0.20,0.40,0.70,0.50,0.30,0.80,0.60,0.10);
 ::
 
-SECTION:: ControlBus 8D
+SECTION:: 8D ControlBus
 
 CODE::
 ~bus = Bus.control(s, 8);
 ~studio.attachControlBus(~bus);
 ::
 
-SECTION:: Strategie de concert
+SECTION:: Live-performance strategy
 
 NUMBEREDLIST::
-## Creer un moteur neuf.
-## Appliquer Classic Live Concert.
-## Commencer avec Suivi direct = 0.
-## Verifier 20 Hz, Learn/N = 6 et Details OFF.
-## Activer le Mode Scene une fois les reglages termines.
-## Si le CPU est trop eleve, passer a 15 Hz et Learn/N = 8.
-## Si l'adaptation est trop lente, essayer Learn/N = 4 ou 2.
+## Create a new engine.
+## Apply Classic Live Concert.
+## Start with Direct Tracking = 0.
+## Confirm 20 Hz, Learn/N = 6, and Details OFF.
+## Enable Stage Mode after completing the setup.
+## If CPU usage is too high, switch to 15 Hz and Learn/N = 8.
+## If adaptation is too slow, try Learn/N = 4 or 2.
 ::
 
 SECTION:: Sessions
-Les sessions sauvegardent le moteur, les parametres runtime, l'etat RCU, les reglages OSC, le suivi direct, les graphes et les journaux. Apres chargement, la variable externe configuree est reaffectee au moteur restaure.
 
-SECTION:: Verification apres chargement
+Sessions save the engine, runtime parameters, RCU state, OSC settings, direct-tracking values, graphs, and logs. After loading, the configured external variable is reassigned to the restored engine.
+
+SECTION:: Verification after loading
 
 CODE::
 [
-    \cle, ~studio.externalTransformerKey,
-    \memeObjet, ~hpTR === ~studio.transformer
+    \key, ~studio.externalTransformerKey,
+    \sameObject, ~hpTR === ~studio.transformer
 ].postln;
 ::

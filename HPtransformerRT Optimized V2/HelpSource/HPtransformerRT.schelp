@@ -1,158 +1,158 @@
 TITLE:: HPtransformerRT
-SUMMARY:: Transformer vectoriel adaptatif Classic Musical RT 8D pour apprentissage et generation en temps reel
+SUMMARY:: Classic Musical RT 8D adaptive vector transformer for real-time learning and generation
 CATEGORIES:: Libraries>HPTransformer, Machine Learning
 RELATED:: Classes/HPTransformerStudio
 
 DESCRIPTION::
-HPtransformerRT V30.3.0 Classic Musical RT est une version orientee musique interactive et faible latence. Le chemin principal utilise directement le vecteur nettoye, sans normalisation Advanced RT, sans historique multiresolution et sans snapshots de stabilite.
+HPtransformerRT V30.3.0 Classic Musical RT is designed for interactive music and low-latency operation. Its main processing path uses the cleaned vector directly, without Advanced RT normalization, multiresolution history, or stability snapshots.
 
-Le profil structurel par defaut utilise 8 entrees, 8 sorties, une fenetre rapide de 8, une memoire longue de 16, une dimension cachee de 32, 4 tetes de taille 8 et 4 experts.
+The default structural profile uses 8 inputs, 8 outputs, a fast window of 8, a long-term memory size of 16, a hidden size of 32, 4 attention heads of size 8, and 4 experts.
 
-Les mecanismes classiques restent disponibles : attention multi-tetes, melange d'experts, memoire longue, memoire de trajectoire, replay, surprise, protection, AutoTune, MetaLearn et RCU. Les profils Classic desactivent AutoTune, MetaLearn et RCU afin de reduire la charge et de conserver un comportement musical direct.
+The conventional mechanisms remain available: multi-head attention, mixture of experts, long-term memory, trajectory memory, replay, surprise, protection, AutoTune, MetaLearn, and RCU. Classic profiles disable AutoTune, MetaLearn, and RCU to reduce processing load and preserve direct musical behavior.
 
 CLASSMETHODS::
 
 METHOD:: new
-Cree un moteur HPtransformerRT.
+Creates an HPtransformerRT engine.
 
 ARGUMENT:: inputSize
-Nombre de dimensions d'entree. Valeur par defaut : 8.
+The number of input dimensions. The default value is 8.
 
 ARGUMENT:: outputSize
-Nombre de dimensions de sortie. Valeur par defaut : 8. outputSize doit etre inferieur ou egal a inputSize.
+The number of output dimensions. The default value is 8. outputSize must be less than or equal to inputSize.
 
 ARGUMENT:: windowSize
-Taille maximale du contexte d'attention rapide. Valeur par defaut : 8.
+The maximum size of the fast-attention context. The default value is 8.
 
 ARGUMENT:: longMemorySize
-Capacite de la memoire longue et du replay. Valeur par defaut : 16.
+The capacity of long-term memory and replay. The default value is 16.
 
 ARGUMENT:: hiddenSize
-Dimension cachee. Valeur par defaut : 32.
+The hidden dimension. The default value is 32.
 
 ARGUMENT:: numHeads
-Nombre de tetes d'attention. Valeur par defaut : 4.
+The number of attention heads. The default value is 4.
 
 ARGUMENT:: headSize
-Dimension de chaque tete. Valeur par defaut : 8.
+The dimension of each attention head. The default value is 8.
 
 ARGUMENT:: numExperts
-Nombre d'experts. Valeur par defaut : 4.
+The number of experts. The default value is 4.
 
 RETURNS::
-Une instance de HPtransformerRT.
+An HPtransformerRT instance.
 
 INSTANCEMETHODS::
 
 METHOD:: learnEvent
-Apprend un evenement entrant. Le moteur construit une paire temporelle entre l'evenement precedent et l'evenement courant, puis met a jour le modele et les mecanismes classiques actifs.
+Learns an incoming event. The engine builds a temporal pair from the previous and current events, then updates the model and any active conventional mechanisms.
 
 ARGUMENT:: event
-Vecteur courant. Avec le profil par defaut, le vecteur doit contenir 8 valeurs.
+The current vector. With the default profile, the vector must contain 8 values.
 
 RETURNS::
-La perte d'apprentissage.
+The training loss.
 
 METHOD:: predict
-Calcule une sortie sans apprentissage.
+Computes an output without learning.
 
 ARGUMENT:: input
-Vecteur d'entree.
+The input vector.
 
 ARGUMENT:: requestedWindowSize
-Fenetre rapide facultative.
+An optional fast-window size.
 
 ARGUMENT:: requestedVelocity
-Contexte de vitesse facultatif.
+An optional velocity context.
 
 RETURNS::
-Un vecteur de outputSize valeurs.
+A vector containing outputSize values.
 
 METHOD:: generateStep
-Genere une etape a partir d'un vecteur d'entree. La sortie est la sortie brute du moteur. Le suivi direct du Studio n'est pas applique ici.
+Generates one step from an input vector. The result is the raw engine output. The Studio's direct tracking is not applied here.
 
 ARGUMENT:: input
-Vecteur de depart.
+The starting vector.
 
 RETURNS::
-Un vecteur genere.
+A generated vector.
 
 METHOD:: generate
-Genere une sequence autoregressive.
+Generates an autoregressive sequence.
 
 ARGUMENT:: seed
-Vecteur initial.
+The initial vector.
 
 ARGUMENT:: count
-Nombre d'etapes.
+The number of steps.
 
 RETURNS::
-Un tableau de vecteurs.
+An array of vectors.
 
 METHOD:: setClassicMusicalDirect
-Applique un profil musical leger : apprentissage modere, replay faible, un rappel memoire, un rappel de trajectoire, fenetre de generation 4, temperature legerement ouverte et RCU desactive.
+Applies a lightweight musical profile with moderate learning, low replay, one memory recall, one trajectory recall, a generation window of 4, a slightly increased temperature, and RCU disabled.
 
 RETURNS::
-La configuration runtime.
+The runtime configuration.
 
 METHOD:: setClassicUltraCPUFastLearn
-Applique le profil CPU minimal avec adaptation forte par evenement appris : replay nul, rappels memoire et trajectoire nuls, fenetre de generation 2, apprentissage et generation actifs, RCU desactive.
+Applies the minimum-CPU profile with strong adaptation for each learned event: no replay, no memory or trajectory recall, a generation window of 2, learning and generation enabled, and RCU disabled.
 
 RETURNS::
-La configuration runtime.
+The runtime configuration.
 
 METHOD:: setClassicGenerationOnly
-Applique un profil de generation seule : apprentissage externe desactive, replay nul, generation active et RCU desactive.
+Applies a generation-only profile with external learning disabled, no replay, generation enabled, and RCU disabled.
 
 RETURNS::
-La configuration runtime.
+The runtime configuration.
 
 METHOD:: setParameter
-Modifie un parametre runtime et le propage aux runtimes actifs lorsque cela est pertinent.
+Changes a runtime parameter and propagates it to active runtimes where applicable.
 
 ARGUMENT:: name
-Symbole du parametre.
+The parameter Symbol.
 
 ARGUMENT:: value
-Nouvelle valeur.
+The new value.
 
 ARGUMENT:: post
-Affiche la modification si true.
+Posts the change when true.
 
 RETURNS::
-La valeur effective.
+The effective value.
 
 METHOD:: setParameters
-Applique un dictionnaire ou un Event de parametres runtime.
+Applies a Dictionary or Event of runtime parameters.
 
 ARGUMENT:: settings
-Dictionnaire de reglages.
+The settings Dictionary.
 
 ARGUMENT:: post
-Affiche les modifications si true.
+Posts the changes when true.
 
 RETURNS::
-La configuration runtime.
+The runtime configuration.
 
 METHOD:: statusSilent
-Retourne un diagnostic complet sans ecrire dans la Post window.
+Returns a complete diagnostic without writing to the Post window.
 
 RETURNS::
-Un Event.
+An Event.
 
 METHOD:: enableUnifiedRCU
-Active le double runtime RCU. Les profils Classic le desactivent par defaut pour reduire la charge CPU.
+Enables the dual RCU runtime. Classic profiles disable it by default to reduce CPU usage.
 
 RETURNS::
-Le moteur.
+The engine.
 
 METHOD:: disableUnifiedRCU
-Desactive le double runtime RCU.
+Disables the dual RCU runtime.
 
 RETURNS::
-Le moteur.
+The engine.
 
-SECTION:: Creation par defaut 8 x 8
+SECTION:: Default 8 x 8 configuration
 
 CODE::
 (
@@ -161,7 +161,7 @@ CODE::
 )
 ::
 
-SECTION:: Creation explicite equivalente
+SECTION:: Equivalent explicit configuration
 
 CODE::
 ~hpTR = HPtransformerRT.new(
@@ -176,7 +176,7 @@ CODE::
 );
 ::
 
-SECTION:: Profil Classic Musical Direct
+SECTION:: Classic Musical Direct profile
 
 CODE::
 (
@@ -185,7 +185,7 @@ CODE::
 )
 ::
 
-SECTION:: Profil Classic Ultra CPU
+SECTION:: Classic Ultra CPU profile
 
 CODE::
 (
@@ -194,7 +194,7 @@ CODE::
 )
 ::
 
-SECTION:: Apprentissage et generation 8D
+SECTION:: 8D learning and generation
 
 CODE::
 ~input = [0.20,0.40,0.70,0.50,0.30,0.80,0.60,0.10];
@@ -202,8 +202,9 @@ CODE::
 ~output = ~hpTR.generateStep(~input);
 ::
 
-SECTION:: Decimation sans Studio
-La methode setClassicUltraCPUFastLearn configure le moteur, mais la decimation Learn/N appartient au Studio ou au programme hote.
+SECTION:: Decimation without the Studio
+
+The setClassicUltraCPUFastLearn method configures the engine, but Learn/N decimation is handled by the Studio or the host program.
 
 CODE::
 (
@@ -218,8 +219,9 @@ CODE::
 )
 ::
 
-SECTION:: Suivi direct avec appels directs
-Le suivi direct n'est pas integre a generateStep. Pour reproduire le suivi du Studio, appliquer le melange apres la generation.
+SECTION:: Direct tracking with direct method calls
+
+Direct tracking is not built into generateStep. To reproduce the Studio's tracking behavior, apply the mix after generation.
 
 CODE::
 ~mix = [0.10,0.05,0.02,0.10,0.05,0.02,0.10,0.05];
@@ -231,5 +233,5 @@ CODE::
 ::
 
 NOTE::
-Les anciens parametres de normalisation, multiresolution et garde de stabilite peuvent encore exister pour la compatibilite des archives, mais le chemin Classic Musical RT les contourne. Ils ne doivent pas etre utilises pour regler cette branche.
+Legacy normalization, multiresolution, and stability-guard parameters may still exist for archive compatibility, but the Classic Musical RT path bypasses them. They should not be used to configure this branch.
 ::
