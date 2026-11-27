@@ -960,8 +960,6 @@ Then rebuild the index:
 SCDoc.indexAllDocuments(true);
 ```
 
----
-
 ## License
 
 See the repository's `LICENSE` file.
